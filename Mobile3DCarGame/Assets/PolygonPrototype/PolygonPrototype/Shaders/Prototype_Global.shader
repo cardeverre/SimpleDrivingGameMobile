@@ -2,6 +2,7 @@
 // Available at the Unity Asset Store - http://u3d.as/y3X 
 Shader "SyntyStudios/Prototype_Global"
 {
+	
 	Properties
 	{
 		_BaseColor("BaseColor", Color) = (0.06228374,0.8320726,0.9411765,0)
@@ -100,6 +101,9 @@ Shader "SyntyStudios/Prototype_Global"
 				float4 tSpace1 : TEXCOORD2;
 				float4 tSpace2 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
+				#if VARYINGS_NEED_POSITION
+				UNITY_VPOS_TYPE vpos;
+				#endif
 			};
 			v2f vert( appdata_full v )
 			{
@@ -118,11 +122,8 @@ Shader "SyntyStudios/Prototype_Global"
 				TRANSFER_SHADOW_CASTER_NORMALOFFSET( o )
 				return o;
 			}
-			half4 frag( v2f IN
-			#if !defined( CAN_SKIP_VPOS )
-			, UNITY_VPOS_TYPE vpos : VPOS
-			#endif
-			) : SV_Target
+
+			half4 frag(v2f IN) : SV_Target
 			{
 				UNITY_SETUP_INSTANCE_ID( IN );
 				Input surfIN;
@@ -137,9 +138,13 @@ Shader "SyntyStudios/Prototype_Global"
 				SurfaceOutputStandard o;
 				UNITY_INITIALIZE_OUTPUT( SurfaceOutputStandard, o )
 				surf( surfIN, o );
-				#if defined( CAN_SKIP_VPOS )
+
+				#if VARYINGS_NEED_POSITION
+				float2 vpos = IN.vpos;
+				#else
 				float2 vpos = IN.pos;
 				#endif
+
 				SHADOW_CASTER_FRAGMENT( IN )
 			}
 			ENDCG

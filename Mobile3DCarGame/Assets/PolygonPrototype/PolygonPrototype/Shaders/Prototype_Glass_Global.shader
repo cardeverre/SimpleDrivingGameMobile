@@ -112,6 +112,9 @@ Shader "SyntyStudios/Prototype_Glass_Global"
 				float4 tSpace1 : TEXCOORD2;
 				float4 tSpace2 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
+				#if VARYINGS_NEED_POSITION
+				UNITY_VPOS_TYPE vpos;
+				#endif
 			};
 			v2f vert( appdata_full v )
 			{
@@ -130,11 +133,7 @@ Shader "SyntyStudios/Prototype_Glass_Global"
 				TRANSFER_SHADOW_CASTER_NORMALOFFSET( o )
 				return o;
 			}
-			half4 frag( v2f IN
-			#if !defined( CAN_SKIP_VPOS )
-			, UNITY_VPOS_TYPE vpos : VPOS
-			#endif
-			) : SV_Target
+			half4 frag(v2f IN) : SV_Target
 			{
 				UNITY_SETUP_INSTANCE_ID( IN );
 				Input surfIN;
@@ -149,9 +148,13 @@ Shader "SyntyStudios/Prototype_Glass_Global"
 				SurfaceOutputStandardSpecular o;
 				UNITY_INITIALIZE_OUTPUT( SurfaceOutputStandardSpecular, o )
 				surf( surfIN, o );
-				#if defined( CAN_SKIP_VPOS )
+
+				#if VARYINGS_NEED_POSITION
+				float2 vpos = IN.vpos;
+				#else
 				float2 vpos = IN.pos;
 				#endif
+
 				half alphaRef = tex3D( _DitherMaskLOD, float3( vpos.xy * 0.25, o.Alpha * 0.9375 ) ).a;
 				clip( alphaRef - 0.01 );
 				SHADOW_CASTER_FRAGMENT( IN )
